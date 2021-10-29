@@ -111,16 +111,14 @@ public class Lab7JDBC {
                     "    mgr_ssn char(9) not null," +
                     "    mgr_start_date date," +
                     "    primary key (dnumber)," +
-                    "    unique (dname)," +
-                    "    foreign key (mgr_ssn) references employee(ssn)" +
+                    "    unique (dname)" +
                     ")";
             stmt.addBatch(sql);
 
             sql = "create table dept_locations (" +
                     "    dnumber int not null," +
                     "    dlocation varchar(15) not null," +
-                    "    primary key (Dnumber, Dlocation)," +
-                    "    foreign key (dnumber) references department(dnumber)" +
+                    "    primary key (Dnumber, Dlocation)" +
                     ")";
             stmt.addBatch(sql);
 
@@ -130,8 +128,7 @@ public class Lab7JDBC {
                     "    plocation varchar(15)," +
                     "    dnum int not null," +
                     "    primary key (Pnumber)," +
-                    "    unique (pname)," +
-                    "    foreign key (Dnum) references department(dnumber)" +
+                    "    unique (pname)" +
                     ")";
             stmt.addBatch(sql);
 
@@ -139,9 +136,7 @@ public class Lab7JDBC {
                     "    essn char(9) not null," +
                     "    pno int not null," +
                     "    hours decimal(3,1)," +
-                    "    primary key (essn, pno)," +
-                    "    foreign key (essn) references employee(ssn)," +
-                    "    foreign key (pno) references project (pnumber)" +
+                    "    primary key (essn, pno)" +
                     ")";
             stmt.addBatch(sql);
 
@@ -151,8 +146,7 @@ public class Lab7JDBC {
                     "    sex char," +
                     "    bdate date," +
                     "    relationship varchar(8)," +
-                    "    primary key (essn, dependent_name)," +
-                    "    foreign key (essn) references employee(ssn)" +
+                    "    primary key (essn, dependent_name)" +
                     ")";
             stmt.addBatch(sql);
 
@@ -170,7 +164,6 @@ public class Lab7JDBC {
         NumberFormat.getInstance().parse(str, pos);
         return str.length() == pos.getIndex();
     }
-
 
     public static boolean isDateValid(String date) {
         try {
@@ -198,7 +191,7 @@ public class Lab7JDBC {
 
                 String sql = "INSERT INTO " + table_name + " VALUES (";
                 for (String s : line.split("#")) {
-                    if (isNumeric(s) || s.toLowerCase() == "null") {
+                    if (isNumeric(s) || s.equalsIgnoreCase("null")) {
                         sql = sql + s + ",";
                     } else if (isDateValid(s)) {
                         sql = sql + "TO_DATE('" + s + "','yyyy-mm-dd'),";
@@ -207,7 +200,7 @@ public class Lab7JDBC {
                     }
                 }
                 sql = sql.substring(0, sql.length() - 1) + ")";
-                System.out.println(sql);
+//                System.out.println(sql);
 
                 stmt.addBatch(sql);
             }
@@ -221,14 +214,46 @@ public class Lab7JDBC {
 
     // recreate the tables and insert records
     public static void doTask1(Connection conn, Statement stmt) {
-        /**/
-        drop_tables(conn, stmt);
+
+        drop_tables(conn, stmt); // when only already tables created
         create_tables(conn, stmt);
 
         try {
             insert_tuples(conn, stmt);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+
+        alter_tables(conn, stmt);
+    }
+
+    private static void alter_tables(Connection conn, Statement stmt) {
+        String sql = "";
+
+        try {
+            sql = "ALTER TABLE department ADD foreign key (mgr_ssn) references employee(ssn)";
+            stmt.addBatch(sql);
+
+            sql = "ALTER TABLE dept_locations ADD foreign key (dnumber) references department(dnumber)";
+            stmt.addBatch(sql);
+
+            sql = "ALTER TABLE project ADD foreign key (Dnum) references department(dnumber)";
+            stmt.addBatch(sql);
+
+            sql = "ALTER TABLE works_on ADD foreign key (essn) references employee(ssn)";
+            stmt.addBatch(sql);
+
+            sql = "ALTER TABLE works_on ADD foreign key (pno) references project (pnumber)";
+            stmt.addBatch(sql);
+
+            sql = "ALTER TABLE dependent ADD foreign key (essn) references employee(ssn)";
+            stmt.addBatch(sql);
+
+            int[] count = stmt.executeBatch();
+            System.out.println("[+] " + count.length + " tables altered.");
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         }
     }
 

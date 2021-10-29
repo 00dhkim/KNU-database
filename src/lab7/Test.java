@@ -27,8 +27,8 @@ public class Test {
 
     public static void main(String[] args) {
 
-        String str = "19406-20";
-        System.out.println(isDateValid(str));
+        String str = "NULL";
+        System.out.println(str.toLowerCase().equals("null"));
 
 
     }
