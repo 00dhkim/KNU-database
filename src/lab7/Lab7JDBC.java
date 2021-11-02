@@ -48,7 +48,7 @@ public class Lab7JDBC {
 
         System.out.println();
 
-//        doTask2(conn, stmt);
+        doTask2(conn, stmt);
 
         // Release database resources.
         try {
@@ -215,7 +215,7 @@ public class Lab7JDBC {
     // recreate the tables and insert records
     public static void doTask1(Connection conn, Statement stmt) {
 
-        drop_tables(conn, stmt); // when only already tables created
+        // drop_tables(conn, stmt); // run only already tables created
         create_tables(conn, stmt);
 
         try {
@@ -261,37 +261,62 @@ public class Lab7JDBC {
         ResultSet rs = null;
         try {
             // Q1: Complete your query.
-            String sql = "";
+            String sql = "select employee.sex, max(employee.salary)\n" +
+                    "from (dependent d join employee on d.essn = employee.ssn)\n" +
+                    "where d.relationship = 'Spouse'\n" +
+                    "group by employee.sex\n" +
+                    "order by max(employee.salary) desc";
             rs = stmt.executeQuery(sql);
             System.out.println("<< query 1 result >>");
+            System.out.println("sex | max_sal\n------------------");
             while (rs.next()) {
-                // Fill out your code
+                String sex = rs.getString(1);
+                float max_sal = rs.getFloat(2);
+                System.out.println(sex + " | " + max_sal);
             }
             rs.close();
 
             System.out.println();
 
             // Q2: Complete your query.
-            sql = "";
+            sql = "select fname, lname, sex, salary\n" +
+                    "from employee e\n" +
+                    "where e.ssn in (select essn\n" +
+                    "from (project p join works_on w on p.pnumber=w.pno)\n" +
+                    "where p.dnum=4)\n" +
+                    "order by ssn";
+            rs = stmt.executeQuery(sql);
             System.out.println("<< query 2 result >>");
+            System.out.println("Lname | Fname | Sex | Salary\n------------------");
             while (rs.next()) {
-                // Fill out your code
+                String lname = rs.getString(1);
+                String fname = rs.getString(2);
+                String sex = rs.getString(3);
+                float salary = rs.getFloat(4);
+                System.out.println(lname + " | " + fname + " | " + sex + " | " + salary);
             }
             rs.close();
 
             System.out.println();
 
             // Q3: Complete your query.
-            sql = "";
+            sql = "select dname, pname, lname, fname\n" +
+                    "from (employee e full outer join project p on e.dno=p.dnum) full outer join department d on d.dnumber=e.dno\n" +
+                    "where plocation='Houston'\n" +
+                    "order by dname";
             rs = stmt.executeQuery(sql);
             System.out.println("<< query 3 result >>");
+            System.out.println("Dname | Pname | Lname | Fname\n------------------");
             while (rs.next()) {
-                // Fill out your code
+                String dname = rs.getString(1);
+                String pname = rs.getString(2);
+                String lname = rs.getString(3);
+                String fname = rs.getString(4);
+                System.out.println(dname + " | " + pname + " | " + lname + " | " + fname);
             }
 
             rs.close();
         } catch (SQLException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
